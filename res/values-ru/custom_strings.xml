@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Folder titles -->
+    <string name="google_title" translatable="false">Google</string>
+
+    <!-- Preferences -->
+    <string name="pref_workspace_title">Настройка домашнего экрана</string>
+    <string name="pref_title_workspace_rows">Количество строк</string>
+    <string name="pref_title_workspace_cols">Количество столбцов</string>
+    <string name="pref_title_default_workspace">Экран по умолчанию</string>
+    <string name="pref_title_show_search_bar">Показывать строку поиска</string>
+
+</resources>
