@@ -299,6 +299,8 @@ public class Workspace extends SmoothPagedView
     boolean mShouldSendPageSettled;
     int mLastOverlaySroll = 0;
 
+    private boolean mShowSearchBar;
+
     private final Runnable mBindPages = new Runnable() {
         @Override
         public void run() {
@@ -2441,13 +2443,13 @@ public class Workspace extends SmoothPagedView
             if (searchBar != null) {
                 Animator searchBarAlpha = new LauncherViewPropertyAnimator(searchBar)
                     .alpha(finalSearchBarAlpha).withLayer();
-                searchBarAlpha.addListener(new AlphaUpdateListener(searchBar));
+                if (mShowSearchBar) searchBarAlpha.addListener(new AlphaUpdateListener(searchBar));
                 searchBar.setLayerType(View.LAYER_TYPE_HARDWARE, null);
                 if (layerViews != null) {
                     layerViews.add(searchBar);
                 }
                 searchBarAlpha.setDuration(duration);
-                anim.play(searchBarAlpha);
+                if (mShowSearchBar) anim.play(searchBarAlpha);
             }
 
             anim.play(overviewPanelAlpha);
@@ -2469,7 +2471,7 @@ public class Workspace extends SmoothPagedView
                 pageIndicator.setAlpha(finalHotseatAndPageIndicatorAlpha);
                 AlphaUpdateListener.updateVisibility(pageIndicator);
             }
-            if (searchBar != null) {
+            if (searchBar != null && mShowSearchBar) {
                 searchBar.setAlpha(finalSearchBarAlpha);
                 AlphaUpdateListener.updateVisibility(searchBar);
             }

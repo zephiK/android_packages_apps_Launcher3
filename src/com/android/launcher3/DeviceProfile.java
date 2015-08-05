@@ -129,6 +129,8 @@ public class DeviceProfile {
     int pageIndicatorHeightPx;
     int allAppsButtonVisualSize;
 
+    boolean searchBarVisible;
+
     float dragViewScale;
 
     int allAppsShortEdgeCount = -1;
@@ -251,6 +253,10 @@ public class DeviceProfile {
         updateFromConfiguration(context, res, wPx, hPx, awPx, ahPx);
         updateAvailableDimensions(context);
         computeAllAppsButtonSize(context);
+
+        // Search Bar
+        searchBarSpaceWidthPx = Math.min(searchBarSpaceMaxWidthPx, widthPx);
+        searchBarSpaceHeightPx = 2 * edgeMarginPx + (searchBarVisible ? searchBarHeightPx  : 3 * edgeMarginPx);
     }
 
     /**
@@ -453,13 +459,7 @@ public class DeviceProfile {
             numRows = prefNumRows;
         }
 
-        boolean showSearchBar = prefs.getBoolean(LauncherPreferences.KEY_SHOW_SEARCHBAR, true);
-        if(showSearchBar) {
-            searchBarSpaceHeightPx = searchBarHeightPx + 2 * edgeMarginPx;
-        }
-        else {
-            searchBarSpaceHeightPx = 1 * edgeMarginPx;
-        }
+        searchBarVisible = prefs.getBoolean(LauncherPreferences.KEY_SHOW_SEARCHBAR, true);
     }
 
     private float dist(PointF p0, PointF p1) {
@@ -534,9 +534,9 @@ public class DeviceProfile {
     /** Returns the search bar top offset */
     int getSearchBarTopOffset() {
         if (isTablet() && !isVerticalBarLayout()) {
-            return 4 * edgeMarginPx;
+            return searchBarVisible ? 4 * edgeMarginPx : 0;
         } else {
-            return 2 * edgeMarginPx;
+            return searchBarVisible ? 2 * edgeMarginPx : 0;
         }
     }
 
@@ -569,12 +569,12 @@ public class DeviceProfile {
                         (numColumns * cellWidthPx)) / (2 * (numColumns + 1)));
                 bounds.set(edgeMarginPx + gap, getSearchBarTopOffset(),
                         availableWidthPx - (edgeMarginPx + gap),
-                        searchBarSpaceHeightPx);
+                        searchBarVisible ? searchBarSpaceHeightPx : edgeMarginPx);
             } else {
                 bounds.set(desiredWorkspaceLeftRightMarginPx - defaultWidgetPadding.left,
                         getSearchBarTopOffset(),
                         availableWidthPx - (desiredWorkspaceLeftRightMarginPx -
-                        defaultWidgetPadding.right), searchBarSpaceHeightPx);
+                        defaultWidgetPadding.right), searchBarVisible ? searchBarSpaceHeightPx : edgeMarginPx);
             }
         }
         return bounds;
@@ -722,6 +722,8 @@ public class DeviceProfile {
     }
 
     public void layout(Launcher launcher) {
+        // Update search bar for live settings
+        searchBarSpaceHeightPx = 2 * edgeMarginPx + (searchBarVisible ? searchBarHeightPx : 3 * edgeMarginPx);
         FrameLayout.LayoutParams lp;
         Resources res = launcher.getResources();
         boolean hasVerticalBarLayout = isVerticalBarLayout();
@@ -730,6 +732,9 @@ public class DeviceProfile {
         View searchBar = launcher.getSearchBar();
         lp = (FrameLayout.LayoutParams) searchBar.getLayoutParams();
         if (hasVerticalBarLayout) {
+            // If search bar is invisible add some extra padding for the drop targets
+            searchBarSpaceHeightPx = searchBarVisible ? searchBarSpaceHeightPx
+                    : searchBarSpaceHeightPx + 5 * edgeMarginPx;
             // Vertical search bar space
             lp.gravity = Gravity.TOP | Gravity.LEFT;
             lp.width = searchBarSpaceHeightPx;
@@ -744,6 +749,14 @@ public class DeviceProfile {
             lp.height = searchBarSpaceHeightPx;
         }
         searchBar.setLayoutParams(lp);
+
+        // Layout the search bar
+        View qsbBar = launcher.getQsbBar();
+        qsbBar.setVisibility(searchBarVisible ? View.VISIBLE : View.GONE);
+        LayoutParams vglp = qsbBar.getLayoutParams();
+        vglp.width = LayoutParams.MATCH_PARENT;
+        vglp.height = LayoutParams.MATCH_PARENT;
+        qsbBar.setLayoutParams(vglp);
 
         // Layout the workspace
         PagedView workspace = (PagedView) launcher.findViewById(R.id.workspace);
